@@ -14,6 +14,7 @@
 ## 关键约束
 - `.memo-header` 和 `.memo-footer`：必须保留 `flex-shrink: 0`。`.memo-body`、`.memo-textarea`、`.memo-preview`：必须保留 `flex-shrink: 1; min-height: 0`。破坏这些规则会导致窗口缩放时布局重叠。
 - 窗口透明效果依赖 GPU 加速 —— 绝不能调用 `app.disableHardwareAcceleration()`
+- **中文字体使用 Windows 系统字体**：`Microsoft YaHei` / `PingFang SC`，不依赖任何远程字体加载；仅 `Outfit`（拉丁/英文）本地化在 `fonts/` 目录中
 - `icon.ico` 必须同时存在于项目根目录和 `build/` 目录中，否则 electron-builder NSIS 打包报错
 - electron-builder 配置在 `package.json` 的 `"build"` 字段中；只有 `build.files` 中列出的文件会被打包 —— 新增源文件时记得添加
 

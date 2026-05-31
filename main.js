@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, session, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -93,6 +93,7 @@ function createNoteWindow(note) {
     alwaysOnTop: note.isPinned || false,
     skipTaskbar: true, // Float on desktop, avoid cluttering taskbar
     hasShadow: true,
+    show: false,
     icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -103,6 +104,10 @@ function createNoteWindow(note) {
 
   win.loadURL(`file://${path.join(__dirname, 'index.html')}?id=${note.id}`);
   win.setMenu(null);
+
+  win.once('ready-to-show', () => {
+    win.show();
+  });
 
   // Auto-save window geometry when moved or resized
   const saveBounds = () => {
@@ -171,12 +176,8 @@ function setupTray() {
   });
 }
 
-// Preconnect Google Fonts to warm up DNS/TLS before windows load
+// Start-up sequence
 app.whenReady().then(() => {
-  const ses = session.defaultSession;
-  ses.preconnect({ url: 'https://fonts.googleapis.com', numSockets: 3 });
-  ses.preconnect({ url: 'https://fonts.gstatic.com', numSockets: 3 });
-
   initializeDB();
   setupTray();
 

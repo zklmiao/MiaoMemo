@@ -1,0 +1,37 @@
+{
+  "name": "miao-memo",
+  "version": "1.0.0",
+  "description": "Acrylic Windows Desktop Sticky Notes",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.miaomemo.app",
+    "productName": "MiaoMemo",
+    "win": {
+      "target": "portable",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "style.css",
+      "fonts.css",
+      "fonts/",
+      "renderer.js",
+      "icon.ico"
+    ]
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}

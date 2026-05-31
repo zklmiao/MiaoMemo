@@ -1,0 +1,16 @@
+# 依赖
+node_modules/
+
+# 构建输出
+dist/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+npm-debug.log*
+
+# 构建缓存
+*.asar

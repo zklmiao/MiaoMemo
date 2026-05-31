@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiaoMemo</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Local Outfit font; Noto Sans SC loaded remotely with display=swap -->
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="theme-white">
+  <div class="memo-container" id="memoContainer">
+    <!-- Header Drag and Control Area -->
+    <header class="memo-header" id="memoHeader">
+      <div class="header-drag-handle">
+        <div class="drag-pill"></div>
+      </div>
+      
+      <div class="header-actions">
+        <!-- Pin Button -->
+        <button class="action-btn" id="pinBtn" title="始终置顶">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h-8l-1 5-4 4v2h7v7l2 2 2-2v-7h7v-2l-4-4-1-5z"/>
+            <line x1="12" y1="12" x2="12" y2="12.01"/>
+          </svg>
+        </button>
+        <!-- Add Note Button -->
+        <button class="action-btn" id="addNoteBtn" title="新建便签">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <!-- Close Button -->
+        <button class="action-btn action-btn-danger" id="closeBtn" title="关闭便签">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Text Area Container -->
+    <main class="memo-body">
+      <div class="memo-title-container">
+        <input type="text" class="memo-title-input" id="memoTitleInput" placeholder="输入页标题...">
+      </div>
+      <textarea class="memo-textarea" id="memoTextarea" placeholder="在此输入便签内容..."></textarea>
+      <div class="memo-preview" id="memoPreview"></div>
+    </main>
+
+    <!-- Footer Status Area -->
+    <footer class="memo-footer" id="memoFooter">
+      <div class="footer-left pagination-container" id="pageIndicatorContainer" style="cursor: pointer;" title="点击查看页面列表">
+        <button class="footer-btn" id="prevPageBtn" title="上一页">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <span id="pageIndicator">2 / 2</span>
+        <button class="footer-btn" id="nextPageBtn" title="下一页">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="footer-right actions-container">
+        <button class="footer-btn" id="addPageBtn" title="新建下一页">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <button class="footer-btn" id="deletePageBtn" title="删除当前页">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            <line x1="10" y1="11" x2="10" y2="17"/>
+            <line x1="14" y1="11" x2="14" y2="17"/>
+          </svg>
+        </button>
+      </div>
+      <div class="sparkle-icon">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4L12 2z"/>
+        </svg>
+      </div>
+    </footer>
+
+    <!-- Pages Jump Drop-up Menu -->
+    <div class="pages-menu" id="pagesMenu">
+      <div class="pages-menu-title">跳转至页面</div>
+      <div class="pages-menu-list" id="pagesMenuList"></div>
+    </div>
+
+    <!-- Right-Click Context Menu -->
+    <div class="context-menu" id="contextMenu">
+      <div class="menu-item" id="menuNewNote">
+        <svg class="menu-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        新建便签
+      </div>
+      <div class="menu-separator"></div>
+      <div class="menu-item menu-parent" id="menuThemeParent">
+        <svg class="menu-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/>
+          <path d="M12 18A6 6 0 1 0 12 6A6 6 0 0 0 12 18Z"/>
+        </svg>
+        更换主题
+        <svg class="menu-arrow" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        <div class="submenu" id="themeSubmenu">
+          <div class="submenu-item" data-color="white"><span class="color-preview preview-white"></span>经典白</div>
+          <div class="submenu-item" data-color="yellow"><span class="color-preview preview-yellow"></span>暖阳黄</div>
+          <div class="submenu-item" data-color="pink"><span class="color-preview preview-pink"></span>蜜桃粉</div>
+          <div class="submenu-item" data-color="blue"><span class="color-preview preview-blue"></span>晴空蓝</div>
+          <div class="submenu-item" data-color="green"><span class="color-preview preview-green"></span>薄荷绿</div>
+          <div class="submenu-item" data-color="purple"><span class="color-preview preview-purple"></span>薰衣紫</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Note Confirmation Modal (Minimal Overlay) -->
+    <div class="confirm-overlay" id="confirmOverlay">
+      <div class="confirm-box">
+        <p>确认删除此整个便签吗？</p>
+        <div class="confirm-actions">
+          <button class="confirm-btn btn-no" id="cancelDeleteBtn">取消</button>
+          <button class="confirm-btn btn-yes" id="confirmDeleteBtn">删除整个便签</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Page Confirmation Modal (Minimal Overlay) -->
+    <div class="confirm-overlay" id="pageConfirmOverlay">
+      <div class="confirm-box">
+        <p>确认删除当前页吗？</p>
+        <div class="confirm-actions">
+          <button class="confirm-btn btn-no" id="cancelDeletePageBtn">取消</button>
+          <button class="confirm-btn btn-yes" id="confirmDeletePageBtn">删除当前页</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

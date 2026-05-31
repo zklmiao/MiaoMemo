@@ -1,8 +1,19 @@
 {
   "name": "miao-memo",
   "version": "1.0.0",
-  "description": "Acrylic Windows Desktop Sticky Notes",
+  "description": "A minimalist acrylic glassmorphism sticky notes app for Windows",
   "main": "main.js",
+  "author": "MiaoMemo",
+  "license": "MIT",
+  "keywords": [
+    "sticky-notes",
+    "electron",
+    "acrylic",
+    "glassmorphism",
+    "markdown",
+    "windows",
+    "desktop"
+  ],
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win --x64"

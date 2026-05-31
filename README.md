@@ -1,6 +1,14 @@
 # MiaoMemo (喵喵便签)
 
+<p align="center">
+  <img src="screenshot.png" alt="MiaoMemo Screenshot" width="600">
+</p>
+
+> A minimalist acrylic glassmorphism sticky notes app for Windows, built with Electron.
+
 MiaoMemo 是一款专为 Windows 设计的极简风格桌面悬浮亚克力玻璃拟态便签。它采用了优雅的半透明亚克力材质（Acrylic Glassmorphism），支持多页翻页、Markdown 实时渲染以及可交互的精致圆角复选框清单。
+
+**Key Features:** Acrylic glassmorphism design · 6 color themes · Markdown live preview · Interactive checklists · Multi-page notes · Always-on-top pinning · System tray integration · Auto-save with debounce.
 
 ---
 
@@ -21,22 +29,29 @@ MiaoMemo 是一款专为 Windows 设计的极简风格桌面悬浮亚克力玻�
 
 ---
 
-## 🛠️ 项目结构
+---
+
+## 🛠️ Project Structure / 项目结构
 
 ```bash
 MiaoMemo/
-├── main.js         # 主进程：窗口生命周期管理、多窗口协调、系统托盘、IPC 核心通道
-├── preload.js      # 预加载脚本：暴露安全的 electronAPI 通道给渲染进程
-├── renderer.js     # 渲染进程：Markdown/复选框解析渲染、交互逻辑与分页状态控制
-├── index.html      # 界面结构：亚克力磨砂壳体、动作栏、弹窗模态层等
-├── style.css       # 样式文件：定义 CSS 变量主题、亚克力微噪音图层、响应式 Flexbox 约束
-├── build/          # 构建资源（存放应用图标 icon.ico）
-└── package.json    # 项目配置、依赖及打包规则
+├── main.js         # Main process: window lifecycle, IPC, tray management
+├── preload.js      # Preload script: secure context bridge
+├── renderer.js     # Renderer process: Markdown parsing, checklist, pagination
+├── index.html      # UI structure: acrylic shell, modals, context menu
+├── style.css       # Styles: CSS theming, acrylic noise texture, flexbox layout
+├── fonts.css       # Local @font-face declarations for Outfit
+├── fonts/          # Local font files (woff2)
+├── build/          # Build assets (icon.ico)
+├── package.json    # Project config, dependencies & electron-builder rules
+└── screenshot.png  # App screenshot
 ```
 
 ---
 
-## 🚀 快速开始
+---
+
+## 🚀 Getting Started / 快速开始
 
 ### 运行环境
 需要本地安装 [Node.js](https://nodejs.org/) 环境。
@@ -62,9 +77,18 @@ npm run build
 
 ---
 
-## ⌨️ 快捷操作说明
+---
+
+## ⌨️ Shortcuts / 快捷操作说明
 
 *   **移动窗口**：按住顶部居中的胶囊拖拽条即可随意拖动窗口位置。
 *   **右键菜单**：在便签任何区域单击右键可弹出菜单，支持**新建便签**和**更换主题**。
 *   **删除便签**：点击顶部右侧的关闭（`×`）按钮，确认后将彻底删除该便签（关闭所有便签后应用自动安全退出）。
 *   **删除单页**：点击底部垃圾桶图标，确认后仅删除当前页。
+
+---
+
+## License
+
+MIT © [MiaoMemo](https://github.com/miaomemo/miaomemo)
+

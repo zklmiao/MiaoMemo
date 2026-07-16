@@ -8,7 +8,7 @@
 
 MiaoMemo 是一款专为 Windows 设计的极简风格桌面悬浮亚克力玻璃拟态便签。它采用了优雅的半透明亚克力材质（Acrylic Glassmorphism），支持多页翻页、Markdown 实时渲染以及可交互的精致圆角复选框清单。
 
-**Key Features:** Acrylic glassmorphism design · 6 color themes · Markdown live preview · Interactive checklists · Multi-page notes · Always-on-top pinning · System tray integration · Auto-save with debounce.
+**Key Features:** Acrylic glassmorphism design · 6 color themes · Markdown live preview · Interactive checklists · Multi-level unordered lists · Multi-page notes · Always-on-top pinning · System tray integration · Auto-save with debounce.
 
 ---
 
@@ -20,6 +20,7 @@ MiaoMemo 是一款专为 Windows 设计的极简风格桌面悬浮亚克力玻�
     *   **编辑模式**：点击文本框即可直接输入内容，支持 Markdown 语法。
     *   **预览模式**：失焦后自动进行排版渲染，标题、粗体均会美化。
 *   **可交互复选框**：在预览模式下直接点击圆角复选框即可改变勾选状态（自动同步后台 Markdown 源码中的 `- [ ]` 和 `- [x]`），无需进入编辑状态。
+*   **多级无序列表**：支持 `-`、`*`、`+` 标记，通过缩进自动识别最多 3 级嵌套，字号与符号随层级递减。
 *   **多页卡片（分页）**：每个便签卡片均支持新建下一页、删除当前页，在底部通过翻页按钮或直接点击页码弹出菜单进行跨页跳转。
 *   **始终置顶 📌**：点击顶部左侧图钉高亮，锁定便签处于所有窗口最上层。
 *   **快捷新建与系统托盘**：
@@ -42,7 +43,7 @@ MiaoMemo/
 ├── style.css       # Styles: CSS theming, acrylic noise texture, flexbox layout
 ├── fonts.css       # Local @font-face declarations for Outfit
 ├── fonts/          # Local font files (woff2)
-├── build/          # Build assets (icon.ico)
+├── icon.ico        # Application icon (256x256)
 ├── package.json    # Project config, dependencies & electron-builder rules
 └── screenshot.png  # App screenshot
 ```
@@ -83,7 +84,7 @@ npm run build
 
 *   **移动窗口**：按住顶部居中的胶囊拖拽条即可随意拖动窗口位置。
 *   **右键菜单**：在便签任何区域单击右键可弹出菜单，支持**新建便签**和**更换主题**。
-*   **删除便签**：点击顶部右侧的关闭（`×`）按钮，确认后将彻底删除该便签（关闭所有便签后应用自动安全退出）。
+*   **关闭便签**：点击顶部右侧的关闭（`×`）按钮弹出菜单，可选择「关闭当前便签窗口」（保留数据，通过托盘恢复）或「退出 MiaoMemo」（完全退出）。空白便签关闭时会自动清理，不留残留。
 *   **删除单页**：点击底部垃圾桶图标，确认后仅删除当前页。
 
 ---

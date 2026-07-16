@@ -21,8 +21,9 @@ const pagesMenuList = document.getElementById('pagesMenuList');
 const pageIndicatorContainer = document.getElementById('pageIndicatorContainer');
 
 const confirmOverlay = document.getElementById('confirmOverlay');
-const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+const cancelCloseBtn = document.getElementById('cancelCloseBtn');
+const closeWindowBtn = document.getElementById('closeWindowBtn');
+const quitAppBtn = document.getElementById('quitAppBtn');
 
 // Multi-page UI Element hooks
 const prevPageBtn = document.getElementById('prevPageBtn');
@@ -225,8 +226,23 @@ function renderPreview() {
       const isChecked = checkMatch[2].toLowerCase() === 'x';
       const content = checkMatch[3];
       return `<div class="preview-line checklist-item" data-line-index="${index}">
-        <span style="opacity: 0.5;">-</span>
         <span class="preview-checkbox${isChecked ? ' checked' : ''}" data-line-index="${index}"></span>
+        <span class="item-text">${parseMarkdownInline(content)}</span>
+      </div>`;
+    }
+
+    // Unordered list (multi-level: -, *, + with indentation)
+    const ulMatch = line.match(/^(\s*)([-*+])(\s+)(.*)$/);
+    if (ulMatch) {
+      const leadingSpaces = ulMatch[1].length;
+      const level = Math.min(Math.floor(leadingSpaces / 2) + 1, 3);
+      const content = ulMatch[4];
+      const bulletChars = ['•', '◦', '▪'];
+      const fontSizes = ['18px', '16px', '14px'];
+      const bulletSizes = ['28px', '26px', '24px'];
+      const opacities = ['0.65', '0.5', '0.35'];
+      return `<div class="preview-line unordered-list-item" data-level="${level}" style="padding-left: ${(level - 1) * 28}px; font-size: ${fontSizes[level - 1]};">
+        <span class="list-bullet" style="font-size: ${bulletSizes[level - 1]}; opacity: ${opacities[level - 1]};">${bulletChars[level - 1]}</span>
         <span class="item-text">${parseMarkdownInline(content)}</span>
       </div>`;
     }
@@ -472,27 +488,26 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Delete Entire Note Actions
-closeBtn.addEventListener('click', async () => {
-  // Safe empty check across all pages
-  const isEntireNoteEmpty = notePages.every(page => page.content.trim() === '' && page.title.trim() === '');
-  if (isEntireNoteEmpty) {
-    await window.electronAPI.deleteNote(noteId);
-  } else {
-    // Show confirmation overlay
-    confirmOverlay.classList.add('open');
-  }
+// Close Note Actions
+closeBtn.addEventListener('click', () => {
+  confirmOverlay.classList.add('open');
 });
 
-// Cancel Delete Note Modal
-cancelDeleteBtn.addEventListener('click', () => {
+// Cancel close dialog
+cancelCloseBtn.addEventListener('click', () => {
   confirmOverlay.classList.remove('open');
 });
 
-// Confirm Delete Note Modal
-confirmDeleteBtn.addEventListener('click', async () => {
+// Close window (keep note data)
+closeWindowBtn.addEventListener('click', async () => {
   confirmOverlay.classList.remove('open');
-  await window.electronAPI.deleteNote(noteId);
+  await window.electronAPI.closeWindow(noteId);
+});
+
+// Quit app entirely
+quitAppBtn.addEventListener('click', async () => {
+  confirmOverlay.classList.remove('open');
+  await window.electronAPI.quitApp();
 });
 
 // Auto-expand list items on Enter (helpful for task lists)

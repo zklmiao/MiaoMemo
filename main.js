@@ -56,7 +56,7 @@ function initializeDB() {
     db.notes = [
       {
         id: 'note-' + Date.now(),
-        pages: ['# 欢迎使用 MiaoMemo! \n\n这是一款极简风格的 Windows 桌面悬浮亚克力便签。\n\n**✨ 待办清单 🗒️**\n- [ ] **新增任务**：输入 \`- [ ] 任务内容\` 即可自动渲染为精美的圆角复选框。\n- [x] **已完成任务**：直接用鼠标点击复选框即可快捷勾选，此条为已完成演示。\n\n**✨ 极简操作：**\n- **拖拽**：按住顶部空白处（拖拽条位置）即可移动便签。\n- **置顶 📌**：点击顶部左侧图钉，锁定便签在最上层。\n- **调色 🎨**：在便签区域内右键，选择“更换主题”即可切换 6 种色系。\n- **自动保存**：写完即走，无需手动保存。\n- **新建 `+`**：点击底部 `+` 即可在桌面新建一个便签。'],
+        pages: [{ title: '欢迎使用 MiaoMemo!', content: '# 欢迎使用 MiaoMemo! \n\n这是一款极简风格的 Windows 桌面悬浮亚克力便签。\n\n**✨ 待办清单 🗒️**\n- [ ] **新增任务**：输入 \`- [ ] 任务内容\` 即可自动渲染为精美的圆角复选框。\n- [x] **已完成任务**：直接用鼠标点击复选框即可快捷勾选，此条为已完成演示。\n\n**✨ 极简操作：**\n- **拖拽**：按住顶部空白处（拖拽条位置）即可移动便签。\n- **置顶 📌**：点击顶部左侧图钉，锁定便签在最上层。\n- **调色 🎨**：在便签区域内右键，选择“更换主题”即可切换 6 种色系。\n- **自动保存**：写完即走，无需手动保存。\n- **新建 `+`**：点击底部 `+` 即可在桌面新建一个便签。' }],
         currentPageIndex: 0,
         color: 'white',
         x: pos.x,
@@ -68,6 +68,52 @@ function initializeDB() {
       }
     ];
     writeDB(db);
+  }
+}
+
+// Migrate and clean the database on startup:
+// - Normalize pages[] entries from string to {title, content} format
+// - Remove notes where all pages are empty
+function migrateDB() {
+  const db = readDB();
+  if (!db.notes || db.notes.length === 0) return;
+
+  let changed = false;
+
+  db.notes = db.notes.filter(note => {
+    if (!note.pages || note.pages.length === 0) {
+      changed = true;
+      return false; // remove notes with no pages
+    }
+
+    // Normalize each page: string → {title, content}
+    note.pages = note.pages.map(page => {
+      if (typeof page === 'string') {
+        changed = true;
+        const titleVal = page.trim().split('\n')[0].replace(/[#*`_\-]/g, '').trim().substring(0, 16);
+        return { title: titleVal || '', content: page };
+      }
+      return page;
+    });
+
+    // Check if all pages are empty
+    const allEmpty = note.pages.every(page => {
+      const title = (page.title || '').trim();
+      const content = (page.content || '').trim();
+      return title === '' && content === '';
+    });
+
+    if (allEmpty) {
+      changed = true;
+      return false; // remove completely empty notes
+    }
+
+    return true;
+  });
+
+  if (changed) {
+    writeDB(db);
+    console.log(`DB migration: cleaned ${db.notes.length} remaining notes`);
   }
 }
 
@@ -179,13 +225,15 @@ function setupTray() {
 // Start-up sequence
 app.whenReady().then(() => {
   initializeDB();
+  migrateDB();   // Clean up empty notes & normalize data format
   setupTray();
 
   // Load all notes stored in db
   const db = readDB();
-  db.notes.forEach(note => {
-    createNoteWindow(note);
-  });
+  if (db.notes.length > 0) {
+    // Only show the first note window on startup; others stay in the DB
+    createNoteWindow(db.notes[0]);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -259,7 +307,7 @@ const handleCreateNewNote = () => {
   const pos = getCascadePosition();
   const newNote = {
     id: 'note-' + Date.now(),
-    pages: [''],
+    pages: [{ title: '', content: '' }],
     currentPageIndex: 0,
     color: 'white',
     x: pos.x,
@@ -286,14 +334,46 @@ ipcMain.handle('delete-note', (event, noteId) => {
   if (win && !win.isDestroyed()) {
     win.close();
   }
-  
+
   const db = readDB();
   db.notes = db.notes.filter(n => n.id !== noteId);
   writeDB(db);
   return true;
 });
 
-// Quit when all windows are closed
-app.on('window-all-closed', () => {
+// IPC Handler: Close window (delete note if all pages are empty)
+ipcMain.handle('close-window', (event, noteId) => {
+  const win = windows.get(noteId);
+  if (win && !win.isDestroyed()) {
+    win.close();
+  }
+
+  // Check if note has any content — if completely empty, remove from DB
+  const db = readDB();
+  const note = db.notes.find(n => n.id === noteId);
+  if (note && note.pages) {
+    const allEmpty = note.pages.every(page => {
+      const title = ((page.title || page) || '').toString().trim();
+      const content = ((page.content || page) || '').toString().trim();
+      return title === '' && content === '';
+    });
+    if (allEmpty) {
+      db.notes = db.notes.filter(n => n.id !== noteId);
+      writeDB(db);
+    }
+  }
+  return true;
+});
+
+// IPC Handler: Quit app entirely
+ipcMain.handle('quit-app', () => {
+  app.isQuitting = true;
   app.quit();
+});
+
+// Quit only when explicitly requested; otherwise stay in tray
+app.on('window-all-closed', () => {
+  if (app.isQuitting) {
+    app.quit();
+  }
 });

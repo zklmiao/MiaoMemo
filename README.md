@@ -157,6 +157,72 @@ miao-memo.exe --user-data-dir="D:\miaomemo-data"
 
 ---
 
+## 🗒️ 数据格式与恢复
+
+`notes.json` 顶层携带 `schemaVersion`（当前为 `1`）。旧版文件（无该字段）会自动在内存中升级，并在下一次成功写盘时持久化版本号。**应用永远不会降级覆盖更高版本的数据文件**：如果 `schemaVersion` 大于本应用支持的版本，应用将以只读模式启动并弹窗说明，原文件保持原样。
+
+旧版格式（无 `schemaVersion`，字符串页自动迁移为标题+正文）：
+
+```json
+{
+  "notes": [
+    { "id": "note-old", "pages": ["# 旧版便签\n正文内容"] }
+  ]
+}
+```
+
+当前格式（`schemaVersion: 1`）：
+
+```json
+{
+  "schemaVersion": 1,
+  "notes": [
+    {
+      "id": "note-new",
+      "pages": [{ "title": "标题", "content": "- [ ] 任务" }],
+      "currentPageIndex": 0,
+      "color": "yellow",
+      "x": 120.0,
+      "y": 90.0,
+      "width": 300.0,
+      "height": 350.0,
+      "isPinned": false
+    }
+  ]
+}
+```
+
+> 以上两个示例被 Rust 单元测试 `documented_notes_json_examples_load_as_described` 钉住：示例若与加载行为不一致，`npm test` 会失败。
+
+**损坏恢复**：
+
+*   JSON 解析失败或结构异常时，原文件先备份为同目录的 `notes.json.corrupt-<时间戳>.bak`，再以空库（或欢迎便签）恢复启动。
+*   加载时发现重复的便签 `id` 会自动修复：第一条保留原 id，后续重复项重新生成 id，修复前的原文件同样先备份。
+*   备份文件最多保留 **10 份**（最新的总是保留），超出部分自动清理；清理只匹配 `notes.json.corrupt-<纯数字>.bak` 命名，其他文件不受影响。
+*   恢复后请先确认备份内容再手动删除 `.bak` 文件；不建议在应用运行时手工编辑 `notes.json`。
+
+---
+
+## 📦 发布与安装
+
+*   **WebView2 运行时**：默认安装包使用 `embedBootstrapper` 模式。目标机器缺少 WebView2 Runtime 时，安装器会运行内置引导器联网安装——**没有网络时引导器会弹出可见的失败提示并中止安装**（不会静默装出一个无法工作的应用）。
+*   **离线安装包**：提供 `offlineInstaller` 变体，内嵌完整 WebView2 Runtime，可在无网络的机器上完成安装：
+
+    ```bash
+    npm run build:offline
+    ```
+
+*   **安装器语言**：NSIS 安装器显式配置了简体中文 + 英文并启用语言选择页（`displayLanguageSelector`）。
+*   **版本一致性**：`npm run build` / `npm run build:offline` 在 `tauri build` 之前运行 `scripts/check-versions.mjs`，`package.json`、`src-tauri/tauri.conf.json`、`src-tauri/Cargo.toml` 三处版本不一致时构建直接失败。
+*   **签名与更新**：当前发布产物**未做代码签名**，Windows SmartScreen 可能提示“未知发布者”，选择“仍要运行”即可；应用**没有内置自动更新器**，升级请手动下载新安装包。未来若引入更新通道，更新元数据与载荷必须先验证签名。
+*   **安装产物**：
+
+    ```text
+    src-tauri/target/release/bundle/nsis/MiaoMemo_<版本>_x64-setup.exe
+    ```
+
+---
+
 ## ⌨️ 快捷操作
 
 *   **移动窗口**：按住顶部拖拽条（`data-tauri-drag-region` 区域）拖动。

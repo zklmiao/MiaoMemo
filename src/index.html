@@ -54,13 +54,15 @@
 
     <!-- Footer Status Area -->
     <footer class="memo-footer" id="memoFooter">
-      <div class="footer-left pagination-container" id="pageIndicatorContainer" style="cursor: pointer;" title="点击查看页面列表" role="button" tabindex="0" aria-label="跳转至页面" aria-haspopup="menu">
+      <div class="footer-left pagination-container" id="pageIndicatorContainer" role="group" aria-label="翻页与页面列表">
         <button class="footer-btn" id="prevPageBtn" title="上一页" aria-label="上一页">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
-        <span id="pageIndicator" aria-live="polite">2 / 2</span>
+        <button class="footer-btn page-menu-btn" id="pageMenuBtn" type="button" title="点击查看页面列表" aria-label="跳转至页面" aria-haspopup="menu" aria-expanded="false">
+          <span id="pageIndicator" aria-live="polite">— / —</span>
+        </button>
         <button class="footer-btn" id="nextPageBtn" title="下一页" aria-label="下一页">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="9 18 15 12 9 6"/>
@@ -69,6 +71,7 @@
       </div>
       
       <div class="footer-right actions-container">
+        <button class="save-status" id="saveStatus" type="button" title="保存状态" aria-live="polite">—</button>
         <button class="footer-btn" id="addPageBtn" title="新建下一页" aria-label="新建下一页">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"/>
@@ -91,6 +94,20 @@
       </div>
     </footer>
 
+    <!-- Missing note / load failure state (editor & footer hidden via body.note-unavailable) -->
+    <div class="memo-state" id="memoState" hidden>
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/>
+        <line x1="12" y1="8" x2="12" y2="12.5"/>
+        <line x1="12" y1="15.5" x2="12" y2="16"/>
+      </svg>
+      <p class="memo-state-message" id="memoStateMessage" role="alert">便签数据不可用。</p>
+      <div class="memo-state-actions">
+        <button class="memo-state-btn" id="memoStateRetryBtn" type="button">重试</button>
+        <button class="memo-state-btn" id="memoStateCloseBtn" type="button">关闭窗口</button>
+      </div>
+    </div>
+
     <!-- Pages Jump Drop-up Menu -->
     <div class="pages-menu" id="pagesMenu" role="menu" aria-label="跳转至页面">
       <div class="pages-menu-title">跳转至页面</div>
@@ -99,7 +116,7 @@
 
     <!-- Right-Click Context Menu -->
     <div class="context-menu" id="contextMenu" role="menu" aria-label="便签菜单">
-      <div class="menu-item" id="menuNewNote" role="menuitem" tabindex="0">
+      <div class="menu-item" id="menuNewNote" role="menuitem" tabindex="-1">
         <svg class="menu-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"/>
           <line x1="5" y1="12" x2="19" y2="12"/>
@@ -107,7 +124,7 @@
         新建便签
       </div>
       <div class="menu-separator"></div>
-      <div class="menu-item menu-parent" id="menuThemeParent" role="menuitem" aria-haspopup="true" aria-label="更换主题">
+      <div class="menu-item menu-parent" id="menuThemeParent" role="menuitem" aria-haspopup="true" aria-label="更换主题" tabindex="-1">
         <svg class="menu-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"/>
           <path d="M12 18A6 6 0 1 0 12 6A6 6 0 0 0 12 18Z"/>
@@ -117,13 +134,21 @@
           <polyline points="9 18 15 12 9 6"/>
         </svg>
         <div class="submenu" id="themeSubmenu" role="menu" aria-label="主题列表">
-          <div class="submenu-item" data-color="white" role="menuitemradio" tabindex="0"><span class="color-preview preview-white" aria-hidden="true"></span>经典白</div>
-          <div class="submenu-item" data-color="yellow" role="menuitemradio" tabindex="0"><span class="color-preview preview-yellow" aria-hidden="true"></span>暖阳黄</div>
-          <div class="submenu-item" data-color="pink" role="menuitemradio" tabindex="0"><span class="color-preview preview-pink" aria-hidden="true"></span>蜜桃粉</div>
-          <div class="submenu-item" data-color="blue" role="menuitemradio" tabindex="0"><span class="color-preview preview-blue" aria-hidden="true"></span>晴空蓝</div>
-          <div class="submenu-item" data-color="green" role="menuitemradio" tabindex="0"><span class="color-preview preview-green" aria-hidden="true"></span>薄荷绿</div>
-          <div class="submenu-item" data-color="purple" role="menuitemradio" tabindex="0"><span class="color-preview preview-purple" aria-hidden="true"></span>薰衣紫</div>
+          <div class="submenu-item" data-color="white" role="menuitemradio" aria-checked="true" tabindex="-1"><span class="color-preview preview-white" aria-hidden="true"></span>经典白</div>
+          <div class="submenu-item" data-color="yellow" role="menuitemradio" aria-checked="false" tabindex="-1"><span class="color-preview preview-yellow" aria-hidden="true"></span>暖阳黄</div>
+          <div class="submenu-item" data-color="pink" role="menuitemradio" aria-checked="false" tabindex="-1"><span class="color-preview preview-pink" aria-hidden="true"></span>蜜桃粉</div>
+          <div class="submenu-item" data-color="blue" role="menuitemradio" aria-checked="false" tabindex="-1"><span class="color-preview preview-blue" aria-hidden="true"></span>晴空蓝</div>
+          <div class="submenu-item" data-color="green" role="menuitemradio" aria-checked="false" tabindex="-1"><span class="color-preview preview-green" aria-hidden="true"></span>薄荷绿</div>
+          <div class="submenu-item" data-color="purple" role="menuitemradio" aria-checked="false" tabindex="-1"><span class="color-preview preview-purple" aria-hidden="true"></span>薰衣紫</div>
         </div>
+      </div>
+      <div class="menu-separator"></div>
+      <div class="menu-item menu-item-danger" id="menuDeleteNote" role="menuitem" tabindex="-1">
+        <svg class="menu-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        删除当前便签
       </div>
     </div>
 
@@ -150,6 +175,17 @@
         <div class="confirm-actions">
           <button class="confirm-btn btn-no" id="cancelDeletePageBtn">取消</button>
           <button class="confirm-btn btn-yes" id="confirmDeletePageBtn">删除当前页</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Note Confirmation Modal -->
+    <div class="confirm-overlay" id="noteDeleteOverlay" role="dialog" aria-modal="true" aria-label="删除便签确认">
+      <div class="confirm-box">
+        <p>确认删除整个便签吗？<br>内容将无法恢复。</p>
+        <div class="confirm-actions">
+          <button class="confirm-btn btn-no" id="cancelDeleteNoteBtn">取消</button>
+          <button class="confirm-btn btn-yes" id="confirmDeleteNoteBtn">删除便签</button>
         </div>
       </div>
     </div>

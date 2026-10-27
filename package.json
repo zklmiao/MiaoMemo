@@ -18,7 +18,8 @@
   "scripts": {
     "dev": "tauri dev",
     "start": "tauri dev",
-    "build": "tauri build",
+    "build": "node scripts/check-versions.mjs && tauri build",
+    "build:offline": "node scripts/check-versions.mjs && tauri build --config src-tauri/tauri.offline.conf.json",
     "tauri": "tauri",
     "test": "node tests/run-all.js && cargo test --manifest-path src-tauri/Cargo.toml",
     "test:js": "node tests/run-all.js",

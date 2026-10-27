@@ -313,12 +313,64 @@ body.theme-purple {
 .memo-preview::-webkit-scrollbar-track {
   background: transparent;
 }
+/* 六套主题均为浅色底：使用中性深色滑块，保证白主题下也可发现/可辨认 */
 .memo-preview::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
   border-radius: 10px;
 }
 .memo-preview::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.32);
+}
+
+/* Missing note / load failure state: 编辑器与页脚隐藏，显式提示（无假页码） */
+.memo-state {
+  display: none;
+}
+body.note-unavailable .memo-body,
+body.note-unavailable .memo-footer {
+  display: none;
+}
+body.note-unavailable .memo-state:not([hidden]) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: var(--text-color);
+  text-align: center;
+}
+.memo-state svg {
+  opacity: 0.4;
+}
+.memo-state-message {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.75;
+}
+.memo-state-actions {
+  display: flex;
+  gap: 8px;
+}
+.memo-state-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--btn-bg);
+  color: inherit;
+  transition: background 0.15s ease;
+}
+.memo-state-btn:hover {
+  background: var(--btn-hover-bg);
+}
+.memo-state-btn:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.35);
+  outline-offset: 1px;
 }
 
 .preview-line {
@@ -436,6 +488,42 @@ body.theme-purple {
   padding-right: 20px;
 }
 
+.save-status {
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  font-family: var(--font-family);
+  font-size: 11px;
+  opacity: 0.55;
+  cursor: default;
+  padding: 0 2px;
+  white-space: nowrap;
+  transition: color 0.15s, opacity 0.15s;
+}
+
+.save-status:hover {
+  opacity: 0.85;
+}
+
+.save-status.saving {
+  opacity: 0.8;
+}
+
+.save-status.error {
+  color: #c62828;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.save-status.readonly {
+  color: #8a6d3b;
+  opacity: 1;
+}
+
+.save-status:disabled {
+  cursor: default;
+}
+
 #pageIndicator {
   font-size: 14px;
   font-weight: 500;
@@ -443,6 +531,39 @@ body.theme-purple {
   text-align: center;
   opacity: 0.9;
   letter-spacing: 2px;
+}
+
+.page-menu-btn {
+  width: auto;
+  min-width: 44px;
+  padding: 0 6px;
+}
+
+.menu-item-danger {
+  color: #c62828;
+}
+
+.menu-item-danger .menu-icon {
+  color: #c62828;
+}
+
+.context-menu.submenu-left .submenu {
+  left: auto;
+  right: 98%;
+  margin-left: 0;
+  margin-right: 2px;
+}
+
+.menu-parent:focus-within .submenu {
+  display: block;
+}
+
+.menu-item:focus-visible,
+.submenu-item:focus-visible,
+.pages-menu-item:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -1px;
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 .footer-btn {

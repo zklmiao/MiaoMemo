@@ -37,93 +37,68 @@ body {
   background: transparent;
   font-family: var(--font-family);
   user-select: none;
-}
 
-/* Active Theme Mappings (High Contrast Light Acrylic) */
-/* Active Theme Mappings (High Contrast Light Acrylic) */
-body.theme-white {
-  --bg-color: var(--white-bg);
-  --accent-color: var(--white-accent);
-  --border-color: var(--white-border);
+  /* Shared theme tokens (identical across all 6 themes) */
   --text-color: #1c1c1c;
   --body-bg: rgba(255, 255, 255, 0.45);
   --checkbox-border: rgba(0, 0, 0, 0.25);
-  --checkbox-checked-bg: var(--white-accent);
   --checkbox-checked-color: #ffffff;
   --btn-bg: rgba(0, 0, 0, 0.03);
   --btn-hover-bg: rgba(0, 0, 0, 0.08);
   --drag-pill-bg: rgba(0, 0, 0, 0.15);
   --sparkle-color: rgba(0, 0, 0, 0.25);
+}
+
+/* Screen-reader-only label (placeholder is not a label) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Active Theme Mappings (High Contrast Light Acrylic) */
+/* Each theme only sets its 3 differentiating variables */
+body.theme-white {
+  --bg-color: var(--white-bg);
+  --accent-color: var(--white-accent);
+  --border-color: var(--white-border);
+  --checkbox-checked-bg: var(--white-accent);
 }
 body.theme-yellow {
   --bg-color: var(--yellow-bg);
   --accent-color: var(--yellow-accent);
   --border-color: var(--yellow-border);
-  --text-color: #1c1c1c;
-  --body-bg: rgba(255, 255, 255, 0.45);
-  --checkbox-border: rgba(0, 0, 0, 0.25);
   --checkbox-checked-bg: var(--yellow-accent);
-  --checkbox-checked-color: #ffffff;
-  --btn-bg: rgba(0, 0, 0, 0.03);
-  --btn-hover-bg: rgba(0, 0, 0, 0.08);
-  --drag-pill-bg: rgba(0, 0, 0, 0.15);
-  --sparkle-color: rgba(0, 0, 0, 0.25);
 }
 body.theme-pink {
   --bg-color: var(--pink-bg);
   --accent-color: var(--pink-accent);
   --border-color: var(--pink-border);
-  --text-color: #1c1c1c;
-  --body-bg: rgba(255, 255, 255, 0.45);
-  --checkbox-border: rgba(0, 0, 0, 0.25);
   --checkbox-checked-bg: var(--pink-accent);
-  --checkbox-checked-color: #ffffff;
-  --btn-bg: rgba(0, 0, 0, 0.03);
-  --btn-hover-bg: rgba(0, 0, 0, 0.08);
-  --drag-pill-bg: rgba(0, 0, 0, 0.15);
-  --sparkle-color: rgba(0, 0, 0, 0.25);
 }
 body.theme-blue {
   --bg-color: var(--blue-bg);
   --accent-color: var(--blue-accent);
   --border-color: var(--blue-border);
-  --text-color: #1c1c1c;
-  --body-bg: rgba(255, 255, 255, 0.45);
-  --checkbox-border: rgba(0, 0, 0, 0.25);
   --checkbox-checked-bg: var(--blue-accent);
-  --checkbox-checked-color: #ffffff;
-  --btn-bg: rgba(0, 0, 0, 0.03);
-  --btn-hover-bg: rgba(0, 0, 0, 0.08);
-  --drag-pill-bg: rgba(0, 0, 0, 0.15);
-  --sparkle-color: rgba(0, 0, 0, 0.25);
 }
 body.theme-green {
   --bg-color: var(--green-bg);
   --accent-color: var(--green-accent);
   --border-color: var(--green-border);
-  --text-color: #1c1c1c;
-  --body-bg: rgba(255, 255, 255, 0.45);
-  --checkbox-border: rgba(0, 0, 0, 0.25);
   --checkbox-checked-bg: var(--green-accent);
-  --checkbox-checked-color: #ffffff;
-  --btn-bg: rgba(0, 0, 0, 0.03);
-  --btn-hover-bg: rgba(0, 0, 0, 0.08);
-  --drag-pill-bg: rgba(0, 0, 0, 0.15);
-  --sparkle-color: rgba(0, 0, 0, 0.25);
 }
 body.theme-purple {
   --bg-color: var(--purple-bg);
   --accent-color: var(--purple-accent);
   --border-color: var(--purple-border);
-  --text-color: #1c1c1c;
-  --body-bg: rgba(255, 255, 255, 0.45);
-  --checkbox-border: rgba(0, 0, 0, 0.25);
   --checkbox-checked-bg: var(--purple-accent);
-  --checkbox-checked-color: #ffffff;
-  --btn-bg: rgba(0, 0, 0, 0.03);
-  --btn-hover-bg: rgba(0, 0, 0, 0.08);
-  --drag-pill-bg: rgba(0, 0, 0, 0.15);
-  --sparkle-color: rgba(0, 0, 0, 0.25);
 }
 
 /* Main Container Frame */
@@ -134,8 +109,8 @@ body.theme-purple {
   height: 100%;
   box-sizing: border-box;
   background: var(--bg-color);
-  backdrop-filter: blur(35px) saturate(190%);
   -webkit-backdrop-filter: blur(35px) saturate(190%);
+  backdrop-filter: blur(35px) saturate(190%);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   /* Light theme shadows: Soft shadow + 1px white inset reflection highlight on top and left border */
@@ -150,19 +125,8 @@ body.theme-purple {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
 }
 
-/* Collapsed override for height saving */
-.memo-container.collapsed {
-  height: 34px !important;
-}
-.memo-container.collapsed .memo-body,
-.memo-container.collapsed .memo-footer,
-.memo-container.collapsed .context-menu {
-  display: none !important;
-}
-.memo-container.collapsed .memo-header {
-  border-bottom: none;
-  height: 32px;
-}
+/* Collapsed feature removed (Option A): no .memo-container.collapsed rules.
+   Legacy isCollapsed DB flag is migrated away in main.js. */
 
 /* Header Area (Draggable Window Region) */
 .memo-header {
@@ -241,15 +205,15 @@ body.theme-purple {
 }
 
 .action-btn-danger:hover {
-  background: #e81123 !important;
-  color: #ffffff !important;
+  background: #e81123;
+  color: #ffffff;
   opacity: 1;
 }
 
-.action-btn.pinned {
-  background: var(--accent-color) !important;
-  color: #ffffff !important;
-  opacity: 1 !important;
+.memo-header .action-btn.pinned {
+  background: var(--accent-color);
+  color: #ffffff;
+  opacity: 1;
 }
 
 .action-btn.pinned svg {
@@ -409,6 +373,16 @@ body.theme-purple {
   background-color: rgba(0, 0, 0, 0.03);
 }
 
+.preview-checkbox:focus-visible,
+.menu-item:focus-visible,
+.submenu-item:focus-visible,
+.pages-menu-item:focus-visible,
+.footer-btn:focus-visible,
+.action-btn:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
 .preview-checkbox.checked {
   background-color: var(--checkbox-checked-bg);
   border-color: var(--checkbox-checked-bg);
@@ -418,7 +392,7 @@ body.theme-purple {
 .preview-checkbox.checked::after {
   content: '✓';
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 /* Sleek Minimalist Scrollbars */
@@ -516,8 +490,8 @@ body.theme-purple {
   z-index: 1000;
   width: 130px;
   background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
+  backdrop-filter: blur(25px) saturate(180%);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -578,8 +552,8 @@ body.theme-purple {
   top: -4px;
   width: 100px;
   background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
+  backdrop-filter: blur(25px) saturate(180%);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -626,8 +600,8 @@ body.theme-purple {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -765,8 +739,8 @@ body.theme-purple {
   z-index: 950;
   width: 150px;
   background: rgba(255, 255, 255, 0.90);
-  backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
+  backdrop-filter: blur(25px) saturate(180%);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);

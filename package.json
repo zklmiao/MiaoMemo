@@ -38,6 +38,8 @@
       "fonts.css",
       "fonts/",
       "renderer.js",
+      "noteUtils.js",
+      "dbStore.js",
       "icon.ico"
     ]
   },

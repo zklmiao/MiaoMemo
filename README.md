@@ -74,7 +74,7 @@ npm start
 ```bash
 npm run build
 ```
-打包成功后，可在项目根目录下的 `dist/` 文件夹中找到生成的 `MiaoMemo 1.0.0.exe` 执行文件。
+打包成功后，可在项目根目录下的 `dist/` 文件夹中找到生成的 `MiaoMemo 1.0.1.exe` 执行文件。
 
 ---
 

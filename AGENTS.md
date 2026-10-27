@@ -8,8 +8,10 @@
 ## 架构
 - Electron 桌面应用；入口 = `main.js`；`contextIsolation: true`，`nodeIntegration: false`
 - 每个便签 = 一个独立的 `BrowserWindow`；渲染进程通过 `window.electronAPI`（`preload.js` 暴露）与主进程通信
-- IPC 通道：`get-note-data`、`update-note`、`create-note`、`delete-note`、`toggle-collapse`（均为 handle/invoke）；`create-new-note-event`（on/send）
-- 数据：单个 `notes.json`，位于 `app.getPath('userData')`，仅主进程读写；写入防抖 250ms
+- IPC 通道（均为 handle/invoke，除注明）：`get-note-data`、`update-note`、`create-note`、`delete-note`、`close-window`、`quit-app`；`create-new-note-event`（on，托盘/内部直调）
+- 数据：单个 `notes.json`，位于 `app.getPath('userData')`，仅主进程读写；内存缓存 + 单防抖 250ms 刷盘 + 原子写（tmp→rename）；`before-quit` 同步刷盘；损坏/结构异常 JSON 备份为 `notes.json.corrupt-<ts>.bak` 后返回空库；启动清理残留 `.tmp`
+- 纯逻辑归属：`noteUtils.js`（判空/标题/id/默认便签，UMD 供 main+renderer+tests）、`dbStore.js`（原子写/加载/内存防抖，纯 Node 供 main+tests）；测试必须 `require` 真模块，禁止复刻断言
+- 测试隔离：`npm start -- --user-data-dir=<空目录>` 可覆盖 userData，避免污染真实便签；`node tests/run-all.js` 跑真模块单元测试
 
 ## 关键约束
 - `.memo-header` 和 `.memo-footer`：必须保留 `flex-shrink: 0`。`.memo-body`、`.memo-textarea`、`.memo-preview`：必须保留 `flex-shrink: 1; min-height: 0`。破坏这些规则会导致窗口缩放时布局重叠。

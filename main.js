@@ -1,45 +1,73 @@
 const { app, BrowserWindow, ipcMain, screen, Tray, Menu, nativeImage } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const { DEFAULT_NOTE_WIDTH, DEFAULT_NOTE_HEIGHT, extractTitleFromText, isNoteEmpty, makeNoteId, createDefaultNote } = require('./noteUtils');
+const { atomicWriteFileSync, loadDBFromDisk: loadDBFromDiskRaw, cleanupStaleTmp, createMemoryStore } = require('./dbStore');
 
-// Disable hardware acceleration to resolve transparent window rendering issues on Windows
-// app.disableHardwareAcceleration();
+// NOTE: 窗口透明效果依赖 GPU 加速，绝不能调用 app.disableHardwareAcceleration()。
+
+// 测试隔离：支持 --user-data-dir=<path> 覆盖 userData（自动化/手工测试隔离用）。
+// 必须在 app.getPath('userData') 之前调用 setPath 才生效。
+for (const arg of process.argv) {
+  if (arg.startsWith('--user-data-dir=')) {
+    const customDir = arg.slice('--user-data-dir='.length).replace(/^"|"$/g, '');
+    if (customDir) {
+      try {
+        fs.mkdirSync(customDir, { recursive: true });
+        app.setPath('userData', customDir);
+      } catch (e) {
+        console.error('Failed to set custom userData dir:', e);
+      }
+    }
+  }
+}
 
 // Path for storing note data
 const userDataPath = app.getPath('userData');
 const dbPath = path.join(userDataPath, 'notes.json');
 const iconPath = path.join(__dirname, 'icon.ico');
 
-// Base64 memo icon (32x32 yellow sticky note) - Retained for reference, no longer written automatically since icon.ico is present
-const base64Icon = 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH6AYbFSUKDC+2XwAAAKBJREFUWMPt1zEKwjAUh/F/ix4g4tBRPIJbT+AO4tLTeC/v4G5tF+8gCkJF8V5CUDD4fC95SUnTJh+t7wUX8iN5efmSgGGYmZnZX2Ui4ggcAQugD5wAz8DY5toG1sDrWJdj22sB5MApIAP2wB7YAdfAuWtsB1wD1/p/tZ0D6+5sT14C3gEDMAKGtq+AEdAAdkC/7t5D6y7M/2VmZmZmZs/1BAM2L3P1655JAAAAAElFTkSuQmCC';
+const DEFAULT_FLUSH_DELAY_MS = 250;
 
 let tray = null;
 const windows = new Map(); // noteId -> BrowserWindow
-let dbWriteTimeout = null;
 
-// Read DB file
-function readDB() {
-  try {
-    if (fs.existsSync(dbPath)) {
-      return JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-    }
-  } catch (e) {
-    console.error('Error reading notes database:', e);
-  }
-  return { notes: [] };
+// ---- 统一持久化层（内存缓存 + 单防抖刷盘，解决跨便签丢数据/双写竞争） ----
+// 真实逻辑位于 dbStore.createMemoryStore，tests 直接测该模块（非复刻），避免虚假 pass。
+function loadDBFromDisk() {
+  return loadDBFromDiskRaw(dbPath);
 }
 
-// Write DB file
-function writeDB(data) {
+const memStore = createMemoryStore({
+  load: loadDBFromDisk,
+  delay: DEFAULT_FLUSH_DELAY_MS,
+  onFlush: (data) => {
+    try {
+      atomicWriteFileSync(dbPath, JSON.stringify(data, null, 2));
+    } catch (e) {
+      console.error('Error writing notes database:', e);
+    }
+  }
+});
+
+function getDB() {
+  return memStore.get();
+}
+
+function schedulePersist() {
+  memStore.schedule();
+}
+
+function flushDBSync() {
   try {
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    memStore.flushSync();
   } catch (e) {
     console.error('Error writing notes database:', e);
   }
 }
 
 // Stagger coordinates for cascading windows
-function getCascadePosition(noteWidth = 300, noteHeight = 350) {
+function getCascadePosition(noteWidth = DEFAULT_NOTE_WIDTH, noteHeight = DEFAULT_NOTE_HEIGHT) {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
   const count = windows.size;
@@ -50,32 +78,32 @@ function getCascadePosition(noteWidth = 300, noteHeight = 350) {
 
 // Initialize default notes if empty
 function initializeDB() {
-  const db = readDB();
+  const db = getDB();
   if (!db.notes || db.notes.length === 0) {
     const pos = getCascadePosition();
     db.notes = [
       {
-        id: 'note-' + Date.now(),
-        pages: [{ title: '欢迎使用 MiaoMemo!', content: '# 欢迎使用 MiaoMemo! \n\n这是一款极简风格的 Windows 桌面悬浮亚克力便签。\n\n**✨ 待办清单 🗒️**\n- [ ] **新增任务**：输入 \`- [ ] 任务内容\` 即可自动渲染为精美的圆角复选框。\n- [x] **已完成任务**：直接用鼠标点击复选框即可快捷勾选，此条为已完成演示。\n\n**✨ 极简操作：**\n- **拖拽**：按住顶部空白处（拖拽条位置）即可移动便签。\n- **置顶 📌**：点击顶部左侧图钉，锁定便签在最上层。\n- **调色 🎨**：在便签区域内右键，选择“更换主题”即可切换 6 种色系。\n- **自动保存**：写完即走，无需手动保存。\n- **新建 `+`**：点击底部 `+` 即可在桌面新建一个便签。' }],
+        id: makeNoteId(),
+        pages: [{ title: '欢迎使用 MiaoMemo!', content: '# 欢迎使用 MiaoMemo! \n\n这是一款极简风格的 Windows 桌面悬浮亚克力便签。\n\n**✨ 待办清单 🗒️**\n- [ ] **新增任务**：输入 `- [ ] 任务内容` 即可自动渲染为精美的圆角复选框。\n- [x] **已完成任务**：直接用鼠标点击复选框即可快捷勾选，此条为已完成演示。\n\n**✨ 极简操作：**\n- **拖拽**：按住顶部空白处（拖拽条位置）即可移动便签。\n- **置顶 📌**：点击顶部左侧图钉，锁定便签在最上层。\n- **调色 🎨**：在便签区域内右键，选择“更换主题”即可切换 6 种色系。\n- **自动保存**：写完即走，无需手动保存。\n- **新建 `+`**：点击底部 `+` 即可在桌面新建一个便签。' }],
         currentPageIndex: 0,
         color: 'white',
         x: pos.x,
         y: pos.y,
-        width: 300,
-        height: 380,
-        isPinned: false,
-        isCollapsed: false
+        width: DEFAULT_NOTE_WIDTH,
+        height: DEFAULT_NOTE_HEIGHT,
+        isPinned: false
       }
     ];
-    writeDB(db);
+    schedulePersist();
   }
 }
 
 // Migrate and clean the database on startup:
 // - Normalize pages[] entries from string to {title, content} format
 // - Remove notes where all pages are empty
+// - Drop legacy isCollapsed flag (fold feature removed, see renderer)
 function migrateDB() {
-  const db = readDB();
+  const db = getDB();
   if (!db.notes || db.notes.length === 0) return;
 
   let changed = false;
@@ -90,20 +118,18 @@ function migrateDB() {
     note.pages = note.pages.map(page => {
       if (typeof page === 'string') {
         changed = true;
-        const titleVal = page.trim().split('\n')[0].replace(/[#*`_\-]/g, '').trim().substring(0, 16);
-        return { title: titleVal || '', content: page };
+        return { title: extractTitleFromText(page), content: page };
       }
       return page;
     });
 
-    // Check if all pages are empty
-    const allEmpty = note.pages.every(page => {
-      const title = (page.title || '').trim();
-      const content = (page.content || '').trim();
-      return title === '' && content === '';
-    });
+    if (note.isCollapsed !== undefined) {
+      delete note.isCollapsed;
+      changed = true;
+    }
 
-    if (allEmpty) {
+    // Check if all pages are empty
+    if (isNoteEmpty(note)) {
       changed = true;
       return false; // remove completely empty notes
     }
@@ -112,8 +138,8 @@ function migrateDB() {
   });
 
   if (changed) {
-    writeDB(db);
-    console.log(`DB migration: cleaned ${db.notes.length} remaining notes`);
+    schedulePersist();
+    console.log(`DB migration: cleaned, ${db.notes.length} remaining notes`);
   }
 }
 
@@ -127,11 +153,9 @@ function createNoteWindow(note) {
     }
   }
 
-  const winHeight = note.isCollapsed ? 34 : (note.height || 350);
-
   const win = new BrowserWindow({
-    width: note.width || 300,
-    height: winHeight,
+    width: note.width || DEFAULT_NOTE_WIDTH,
+    height: note.height || DEFAULT_NOTE_HEIGHT,
     x: note.x,
     y: note.y,
     frame: false,
@@ -155,21 +179,18 @@ function createNoteWindow(note) {
     win.show();
   });
 
-  // Auto-save window geometry when moved or resized
+  // Auto-save window geometry to memory; flush debounced to disk (no sync I/O per move)
   const saveBounds = () => {
     if (win.isDestroyed()) return;
     const bounds = win.getBounds();
-    const db = readDB();
+    const db = getDB();
     const target = db.notes.find(n => n.id === note.id);
     if (target) {
       target.x = bounds.x;
       target.y = bounds.y;
-      // Do not overwrite normal height if window is currently collapsed
-      if (!target.isCollapsed) {
-        target.width = bounds.width;
-        target.height = bounds.height;
-      }
-      writeDB(db);
+      target.width = bounds.width;
+      target.height = bounds.height;
+      schedulePersist();
     }
   };
 
@@ -187,18 +208,18 @@ function createNoteWindow(note) {
 function setupTray() {
   const trayIcon = fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : nativeImage.createEmpty();
   tray = new Tray(trayIcon.resize({ width: 16, height: 16 }));
-  
+
   const contextMenu = Menu.buildFromTemplate([
     {
       label: '新建便签 (+)',
       click: () => {
-        ipcMain.emit('create-new-note-event');
+        handleCreateNewNote();
       }
     },
     {
       label: '显示所有便签',
       click: () => {
-        const db = readDB();
+        const db = getDB();
         db.notes.forEach(note => {
           createNoteWindow(note);
         });
@@ -218,51 +239,43 @@ function setupTray() {
   tray.setContextMenu(contextMenu);
 
   tray.on('double-click', () => {
-    ipcMain.emit('create-new-note-event');
+    handleCreateNewNote();
   });
 }
 
 // Start-up sequence
 app.whenReady().then(() => {
+  cleanupStaleTmp(dbPath);
   initializeDB();
   migrateDB();   // Clean up empty notes & normalize data format
   setupTray();
 
   // Load all notes stored in db
-  const db = readDB();
+  const db = getDB();
   if (db.notes.length > 0) {
     // Only show the first note window on startup; others stay in the DB
     createNoteWindow(db.notes[0]);
   }
+});
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      const currentDB = readDB();
-      if (currentDB.notes.length > 0) {
-        currentDB.notes.forEach(note => createNoteWindow(note));
-      } else {
-        ipcMain.emit('create-new-note-event');
-      }
-    }
-  });
+// 退出前刷盘，防止防抖队列丢失
+app.on('before-quit', () => {
+  flushDBSync();
 });
 
 // IPC Handler: Get note details
 ipcMain.handle('get-note-data', (event, noteId) => {
-  const db = readDB();
+  const db = getDB();
   return db.notes.find(n => n.id === noteId);
 });
 
-// IPC Handler: Update note contents / visual settings
+// IPC Handler: Update note contents / visual settings (memory + debounced flush)
 ipcMain.handle('update-note', (event, noteId, updatedFields) => {
-  // Use debouncing for saving data to avoid excessive writes
-  if (dbWriteTimeout) clearTimeout(dbWriteTimeout);
-
-  const db = readDB();
+  const db = getDB();
   const index = db.notes.findIndex(n => n.id === noteId);
   if (index !== -1) {
     db.notes[index] = { ...db.notes[index], ...updatedFields };
-    
+
     // Sync settings directly to target BrowserWindow if needed
     const win = windows.get(noteId);
     if (win && !win.isDestroyed()) {
@@ -271,55 +284,20 @@ ipcMain.handle('update-note', (event, noteId, updatedFields) => {
       }
     }
 
-    dbWriteTimeout = setTimeout(() => {
-      writeDB(db);
-    }, 250);
+    schedulePersist();
     return true;
   }
   return false;
 });
 
-// IPC Handler: Toggle Collapse height
-ipcMain.handle('toggle-collapse', (event, noteId, isCollapsed, height) => {
-  const win = windows.get(noteId);
-  if (win && !win.isDestroyed()) {
-    const db = readDB();
-    const note = db.notes.find(n => n.id === noteId);
-    if (note) {
-      note.isCollapsed = isCollapsed;
-      writeDB(db);
-
-      const bounds = win.getBounds();
-      const targetHeight = isCollapsed ? 34 : (height || 350);
-      win.setBounds({
-        x: bounds.x,
-        y: bounds.y,
-        width: bounds.width,
-        height: targetHeight
-      });
-    }
-  }
-});
-
 // Internal event + IPC Handler: Create new note
 const handleCreateNewNote = () => {
-  const db = readDB();
+  const db = getDB();
   const pos = getCascadePosition();
-  const newNote = {
-    id: 'note-' + Date.now(),
-    pages: [{ title: '', content: '' }],
-    currentPageIndex: 0,
-    color: 'white',
-    x: pos.x,
-    y: pos.y,
-    width: 300,
-    height: 350,
-    isPinned: false,
-    isCollapsed: false
-  };
+  const newNote = createDefaultNote(makeNoteId(), pos);
 
   db.notes.push(newNote);
-  writeDB(db);
+  schedulePersist();
   createNoteWindow(newNote);
 };
 
@@ -335,9 +313,9 @@ ipcMain.handle('delete-note', (event, noteId) => {
     win.close();
   }
 
-  const db = readDB();
+  const db = getDB();
   db.notes = db.notes.filter(n => n.id !== noteId);
-  writeDB(db);
+  schedulePersist();
   return true;
 });
 
@@ -349,19 +327,12 @@ ipcMain.handle('close-window', (event, noteId) => {
   }
 
   // Check if note has any content — if completely empty, remove from DB
-  const db = readDB();
+  const db = getDB();
   const note = db.notes.find(n => n.id === noteId);
-  if (note && note.pages) {
-    const allEmpty = note.pages.every(page => {
-      const title = ((page.title || page) || '').toString().trim();
-      const content = ((page.content || page) || '').toString().trim();
-      return title === '' && content === '';
-    });
-    if (allEmpty) {
-      db.notes = db.notes.filter(n => n.id !== noteId);
-      writeDB(db);
-    }
+  if (note && isNoteEmpty(note)) {
+    db.notes = db.notes.filter(n => n.id !== noteId);
   }
+  schedulePersist();
   return true;
 });
 

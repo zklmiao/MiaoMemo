@@ -1,7 +1,7 @@
 // extractTitleFromText + makeNoteId 真模块测试：直测 noteUtils.js
 // 运行: node tests/test-title-extract.js
 const assert = require('node:assert');
-const { extractTitleFromText, makeNoteId } = require('../noteUtils');
+const { extractTitleFromText, makeNoteId } = require('../src/noteUtils');
 
 const cases = [
   { name: '空返回空', input: '', expect: '' },

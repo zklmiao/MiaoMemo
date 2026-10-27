@@ -1,4 +1,4 @@
-const noteId = new URLSearchParams(window.location.search).get('id');
+const noteId = window.memoAPI.noteId;
 
 const memoContainer = document.getElementById('memoContainer');
 const memoHeader = document.getElementById('memoHeader');
@@ -36,11 +36,13 @@ const confirmDeletePageBtn = document.getElementById('confirmDeletePageBtn');
 
 // Note state
 let isPinned = false;
-let saveTimeout = null;
 
 // Multi-page state: array of { title: string, content: string }
 let notePages = [{ title: '', content: '' }];
 let currentPageIndex = 0;
+
+// Serialize IPC writes so a slow earlier save can never overwrite a newer one.
+let saveChain = Promise.resolve();
 
 // --- Helpers (真实逻辑位于 noteUtils.js，经 <script> 以 window.NoteUtils 注入；此处取用全局，杜绝复刻漂移) ---
 const NoteUtilsGlobal = (typeof window !== 'undefined' && window.NoteUtils) ? window.NoteUtils : null;
@@ -66,20 +68,19 @@ function getSubmenuItems() {
 }
 
 async function safeUpdateNote(fields) {
-  try {
-    await window.electronAPI.updateNote(noteId, fields);
-  } catch (e) {
-    console.error('updateNote failed:', e);
-  }
+  // Deep-copy immediately: queued writes must not observe later page mutations.
+  const payload = JSON.parse(JSON.stringify(fields));
+  saveChain = saveChain
+    .then(() => window.memoAPI.updateNote(noteId, payload))
+    .catch((e) => {
+      console.error('updateNote failed:', e);
+    });
+  return saveChain;
 }
 
-// Cancel pending debounce and persist current page immediately.
-// Prevents page-switch / close races where a stale timer overwrites new structure.
+// Persist the current page immediately. Every input already queues an update,
+// so this mainly guarantees ordering before page switches and window close.
 async function flushPendingSave() {
-  if (saveTimeout) {
-    clearTimeout(saveTimeout);
-    saveTimeout = null;
-  }
   syncCurrentPage();
   await safeUpdateNote({
     pages: notePages,
@@ -93,7 +94,7 @@ async function initNote() {
 
   let note = null;
   try {
-    note = await window.electronAPI.getNoteData(noteId);
+    note = await window.memoAPI.getNoteData(noteId);
   } catch (e) {
     console.error('getNoteData failed:', e);
     return;
@@ -188,26 +189,20 @@ function applyTheme(colorName) {
   });
 }
 
-// Debounced Auto-save to JSON database
+// Auto-save to the Rust backend on every edit. The backend coalesces disk writes;
+// keeping the IPC write immediate removes the old 400ms close/quit data-loss window.
 function triggerAutoSave() {
-  if (saveTimeout) clearTimeout(saveTimeout);
-
-  // Sync current value to state array immediately
   syncCurrentPage();
-
-  saveTimeout = setTimeout(async () => {
-    saveTimeout = null;
-    await safeUpdateNote({
-      pages: notePages,
-      currentPageIndex: currentPageIndex
-    });
-  }, 400);
+  void safeUpdateNote({
+    pages: notePages,
+    currentPageIndex: currentPageIndex
+  });
 }
 
 // Add Note Button
 addNoteBtn.addEventListener('click', () => {
   try {
-    const p = window.electronAPI.createNote();
+    const p = window.memoAPI.createNote();
     if (p && typeof p.catch === 'function') {
       p.catch(e => console.error('createNote failed:', e));
     }
@@ -450,7 +445,7 @@ document.addEventListener('keydown', (e) => {
 // Context Menu: Create New Note
 function handleMenuNewNote() {
   try {
-    const p = window.electronAPI.createNote();
+    const p = window.memoAPI.createNote();
     if (p && typeof p.catch === 'function') {
       p.catch(err => console.error('createNote failed:', err));
     }
@@ -543,6 +538,9 @@ function togglePagesMenu(e) {
 }
 pageIndicatorContainer.addEventListener('click', togglePagesMenu);
 pageIndicatorContainer.addEventListener('keydown', (e) => {
+  // Ignore Enter/Space on the nested prev/next buttons; otherwise their
+  // native activation is cancelled and the jump menu opens instead.
+  if (e.target !== pageIndicatorContainer) return;
   if (e.key === 'Enter' || e.key === ' ') {
     e.preventDefault();
     togglePagesMenu(e);
@@ -559,12 +557,12 @@ cancelCloseBtn.addEventListener('click', () => {
   confirmOverlay.classList.remove('open');
 });
 
-// Close window (flush pending edits first to avoid losing last 400ms)
+// Close window (flush pending edits first)
 closeWindowBtn.addEventListener('click', async () => {
   confirmOverlay.classList.remove('open');
   await flushPendingSave();
   try {
-    await window.electronAPI.closeWindow(noteId);
+    await window.memoAPI.closeWindow(noteId);
   } catch (e) {
     console.error('closeWindow failed:', e);
   }
@@ -575,7 +573,7 @@ quitAppBtn.addEventListener('click', async () => {
   confirmOverlay.classList.remove('open');
   await flushPendingSave();
   try {
-    await window.electronAPI.quitApp();
+    await window.memoAPI.quitApp();
   } catch (e) {
     console.error('quitApp failed:', e);
   }
@@ -583,6 +581,8 @@ quitAppBtn.addEventListener('click', async () => {
 
 // Auto-expand list items on Enter (helpful for task lists)
 memoTextarea.addEventListener('keydown', (e) => {
+  // Never hijack Enter while an IME is composing (Chinese/Japanese input).
+  if (e.isComposing || e.keyCode === 229) return;
   if (e.key === 'Enter') {
     const textarea = e.target;
     const startPos = textarea.selectionStart;
@@ -658,7 +658,7 @@ deletePageBtn.addEventListener('click', async () => {
   const text = memoTextarea.value.trim();
   const title = memoTitleInput.value.trim();
   if (text === '' && title === '') {
-    // If empty page, delete immediately (flush first to cancel stale timer)
+    // If empty page, delete immediately (flush first to cancel stale writes)
     await flushPendingSave();
     await deleteCurrentPage();
   } else {

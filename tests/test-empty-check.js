@@ -1,7 +1,7 @@
 // isNoteEmpty 真模块回归测试：直测 noteUtils.js（非复刻），避免源码漂移时虚假 pass。
 // 运行: node tests/test-empty-check.js  (exit 0 = 全过, 非0 = 有失败)
 const assert = require('node:assert');
-const { isNoteEmpty } = require('../noteUtils');
+const { isNoteEmpty } = require('../src/noteUtils');
 
 const cases = [
   { name: '空对象页应判空', note: { pages: [{ title: '', content: '' }] }, expect: true },

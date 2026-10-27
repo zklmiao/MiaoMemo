@@ -3,6 +3,11 @@ node_modules/
 
 # 构建输出
 dist/
+src-tauri/target/
+src-tauri/gen/
+
+# 本地 AI 工具状态
+.mimosa/
 
 # 系统文件
 .DS_Store
@@ -14,3 +19,7 @@ npm-debug.log*
 
 # 构建缓存
 *.asar
+
+# Python
+__pycache__/
+*.pyc

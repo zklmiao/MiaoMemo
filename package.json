@@ -1,13 +1,14 @@
 {
   "name": "miao-memo",
   "version": "1.0.1",
-  "description": "A minimalist acrylic glassmorphism sticky notes app for Windows",
-  "main": "main.js",
+  "private": true,
+  "description": "A minimalist acrylic glassmorphism sticky notes app for Windows, built with Tauri and Rust",
   "author": "MiaoMemo",
   "license": "MIT",
   "keywords": [
     "sticky-notes",
-    "electron",
+    "tauri",
+    "rust",
     "acrylic",
     "glassmorphism",
     "markdown",
@@ -15,36 +16,16 @@
     "desktop"
   ],
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder --win --x64"
-  },
-  "build": {
-    "appId": "com.miaomemo.app",
-    "productName": "MiaoMemo",
-    "win": {
-      "target": "portable",
-      "icon": "icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "index.html",
-      "style.css",
-      "fonts.css",
-      "fonts/",
-      "renderer.js",
-      "noteUtils.js",
-      "dbStore.js",
-      "icon.ico"
-    ]
+    "dev": "tauri dev",
+    "start": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri",
+    "test": "node tests/run-all.js && cargo test --manifest-path src-tauri/Cargo.toml",
+    "test:js": "node tests/run-all.js",
+    "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "icons": "python generate_icons.py"
   },
   "devDependencies": {
-    "electron": "^31.0.0",
-    "electron-builder": "^25.1.8"
+    "@tauri-apps/cli": "^2.12.4"
   }
 }

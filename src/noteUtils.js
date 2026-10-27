@@ -1,5 +1,5 @@
 // 纯函数模块：便签判空 / 标题提取 / id 生成 / 默认便签。
-// UMD：main.js 与 tests 经 require 使用，renderer 经 <script> 以 window.NoteUtils 使用。
+// UMD：Rust 迁移后仍由 renderer 经 <script> 以 window.NoteUtils 使用，JS 测试直接 require。
 (function (root, factory) {
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = factory();

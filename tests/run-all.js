@@ -4,8 +4,6 @@ const path = require('node:path');
 const tests = [
   'test-empty-check.js',
   'test-title-extract.js',
-  'test-atomic-persist.js',
-  'test-debounce-merge.js',
 ];
 
 let failed = 0;

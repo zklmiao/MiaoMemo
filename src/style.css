@@ -126,7 +126,7 @@ body.theme-purple {
 }
 
 /* Collapsed feature removed (Option A): no .memo-container.collapsed rules.
-   Legacy isCollapsed DB flag is migrated away in main.js. */
+   Legacy isCollapsed DB flag is migrated away in the Rust store. */
 
 /* Header Area (Draggable Window Region) */
 .memo-header {
@@ -136,7 +136,6 @@ body.theme-purple {
   height: 48px;
   flex-shrink: 0;
   padding: 0 16px;
-  -webkit-app-region: drag; /* Tell Electron it drags here */
   border-bottom: none;
   background: transparent;
   transition: background var(--transition-speed);
@@ -152,7 +151,6 @@ body.theme-purple {
   left: 0;
   right: 0;
   height: 12px;
-  -webkit-app-region: drag;
 }
 
 .drag-pill {
@@ -171,7 +169,6 @@ body.theme-purple {
 .header-actions {
   display: flex;
   gap: 8px;
-  -webkit-app-region: no-drag; /* Clickable elements */
   opacity: 0.8;
   transition: opacity var(--transition-speed) ease;
   position: absolute;

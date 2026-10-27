@@ -11,9 +11,9 @@
 <body class="theme-white">
   <div class="memo-container" id="memoContainer">
     <!-- Header Drag and Control Area -->
-    <header class="memo-header" id="memoHeader">
-      <div class="header-drag-handle">
-        <div class="drag-pill"></div>
+    <header class="memo-header" id="memoHeader" data-tauri-drag-region>
+      <div class="header-drag-handle" data-tauri-drag-region>
+        <div class="drag-pill" data-tauri-drag-region></div>
       </div>
       
       <div class="header-actions">
@@ -156,6 +156,7 @@
   </div>
 
   <script src="noteUtils.js"></script>
+  <script src="api.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

@@ -4,92 +4,169 @@
   <img src="screenshot.png" alt="MiaoMemo Screenshot" width="600">
 </p>
 
-> A minimalist acrylic glassmorphism sticky notes app for Windows, built with Electron.
+> A minimalist translucent glassmorphism sticky notes app for Windows, built with Tauri 2, Rust and WebView2.
 
-MiaoMemo 是一款专为 Windows 设计的极简风格桌面悬浮亚克力玻璃拟态便签。它采用了优雅的半透明亚克力材质（Acrylic Glassmorphism），支持多页翻页、Markdown 实时渲染以及可交互的精致圆角复选框清单。
+MiaoMemo 是一款专为 Windows 设计的极简风格桌面悬浮便签。它采用半透明玻璃拟态外观，支持多页翻页、Markdown 实时渲染以及可交互的圆角复选框清单。
 
-**Key Features:** Acrylic glassmorphism design · 6 color themes · Markdown live preview · Interactive checklists · Multi-level unordered lists · Multi-page notes · Always-on-top pinning · System tray integration · Auto-save with debounce.
+**Key Features:** Translucent glassmorphism design · 6 color themes · Markdown live preview · Interactive checklists · Multi-level unordered lists · Multi-page notes · Always-on-top pinning · System tray integration · Auto-save with debounced disk writes · Single-instance protection.
 
 ---
 
 ## 🗒️ 功能特性
 
-*   **极简亚克力美学**：精致的磨砂玻璃毛玻璃特效，完美贴合现代桌面审美。
-*   **多主题切换**：支持 **经典白**、**暖阳黄**、**蜜桃粉**、**晴空蓝**、**薄荷绿**、**薰衣紫** 六种精美色彩，在便签区域内右键即可随时切换。
+*   **极简半透明美学**：透明 WebView2 窗口搭配半透明 CSS 材质与噪点纹理，贴合现代桌面审美。
+*   **多主题切换**：支持 **经典白**、**暖阳黄**、**蜜桃粉**、**晴空蓝**、**薄荷绿**、**薰衣紫** 六种色彩，在便签区域内右键即可切换。
 *   **智能双模交互**：
-    *   **编辑模式**：点击文本框即可直接输入内容，支持 Markdown 语法。
-    *   **预览模式**：失焦后自动进行排版渲染，标题、粗体均会美化。
-*   **可交互复选框**：在预览模式下直接点击圆角复选框即可改变勾选状态（自动同步后台 Markdown 源码中的 `- [ ]` 和 `- [x]`），无需进入编辑状态。
-*   **多级无序列表**：支持 `-`、`*`、`+` 标记，通过缩进自动识别最多 3 级嵌套，字号与符号随层级递减。
-*   **多页卡片（分页）**：每个便签卡片均支持新建下一页、删除当前页，在底部通过翻页按钮或直接点击页码弹出菜单进行跨页跳转。
-*   **始终置顶 📌**：点击顶部左侧图钉高亮，锁定便签处于所有窗口最上层。
-*   **快捷新建与系统托盘**：
-    *   点击底部 `+` 即可迅速在桌面建立一个新便签（支持坐标级联错开，防止重叠）。
-    *   双击系统托盘图标可快速创建便签，右键托盘支持显示所有或完全退出。
-*   **安全数据自动保存**：写完即走，无需手动保存，数据在本地安全落地（采用防抖机制，避免频繁写入硬盘）。
+    *   **编辑模式**：点击文本框直接输入，支持 Markdown 语法。
+    *   **预览模式**：失焦后自动渲染标题、粗体、斜体、列表和复选框。
+*   **可交互复选框**：预览模式下点击圆角复选框即可切换 `- [ ]` / `- [x]`，无需进入编辑状态。
+*   **多级无序列表**：支持 `-`、`*`、`+`，按缩进识别最多 3 级嵌套。
+*   **多页卡片**：每个便签支持新建、删除、翻页，以及点击页码弹出页面列表跳转。
+*   **始终置顶 📌**：点击图钉锁定便签在最上层。
+*   **系统托盘**：双击托盘新建便签；右键支持新建、显示所有、退出。
+*   **数据安全**：内存缓存 + 250ms 防抖落盘 + 原子写（tmp→rename）+ 损坏 JSON 备份；关闭/退出时同步刷盘。
+*   **单实例保护**：重复启动会聚焦已有实例，避免两个进程互相覆盖 `notes.json`。
+*   **旧数据迁移**：首次启动自动导入旧 Electron 版本的 `notes.json`。
 
 ---
 
+## 🛠️ 技术栈
+
+*   **Tauri 2** + **Rust**：窗口、托盘、单实例、持久化和 IPC。
+*   **Vanilla HTML / CSS / JavaScript**：`src/` 下的静态前端，无打包器、无前端运行时依赖。
+*   **WebView2**：Windows 上的 WebView 运行时。
+*   **Serde / serde_json**：`notes.json` 序列化与容错迁移。
+*   **Pillow**：生成 `src-tauri/icons/` 图标资源。
+
 ---
 
-## 🛠️ Project Structure / 项目结构
+## 📁 项目结构
 
 ```bash
 MiaoMemo/
-├── main.js         # Main process: window lifecycle, IPC, tray management
-├── preload.js      # Preload script: secure context bridge
-├── renderer.js     # Renderer process: Markdown parsing, checklist, pagination
-├── index.html      # UI structure: acrylic shell, modals, context menu
-├── style.css       # Styles: CSS theming, acrylic noise texture, flexbox layout
-├── fonts.css       # Local @font-face declarations for Outfit
-├── fonts/          # Local font files (woff2)
-├── icon.ico        # Application icon (256x256)
-├── package.json    # Project config, dependencies & electron-builder rules
-└── screenshot.png  # App screenshot
+├── src/                    # Frontend: HTML/CSS/JS served by Tauri
+│   ├── index.html
+│   ├── style.css
+│   ├── renderer.js         # Note UI, Markdown preview, pages, menus
+│   ├── api.js              # Tauri IPC adapter (window.memoAPI)
+│   ├── noteUtils.js        # UMD helpers shared with JS tests
+│   ├── fonts.css
+│   └── fonts/              # Local Outfit woff2 files
+├── src-tauri/              # Rust backend
+│   ├── Cargo.toml
+│   ├── build.rs
+│   ├── tauri.conf.json
+│   ├── capabilities/default.json
+│   ├── icons/              # Generated Tauri icon set
+│   └── src/
+│       ├── main.rs         # Windows, tray, commands, single instance
+│       └── store.rs        # Persistence, debounce, migration + Rust tests
+├── tests/                  # JS unit tests + manual GUI checklist
+├── generate_icons.py       # Regenerate src-tauri/icons from icon.ico
+├── icon.ico                # Source app icon
+├── screenshot.png
+└── package.json            # Tauri CLI scripts & JS tests
 ```
 
 ---
 
----
-
-## 🚀 Getting Started / 快速开始
+## 🚀 快速开始
 
 ### 运行环境
-需要本地安装 [Node.js](https://nodejs.org/) 环境。
+
+*   Windows 10/11（需要 WebView2 Runtime；Windows 11 通常已预装）
+*   [Node.js](https://nodejs.org/) 20+
+*   Rust stable（MSVC toolchain）
+*   Visual Studio Build Tools（“Desktop development with C++” 工作负载）
 
 ### 1. 安装依赖
-在项目根目录下执行：
+
 ```bash
 npm install
 ```
 
-### 2. 启动开发模式
-运行应用进行预览和调试：
+### 2. 开发模式
+
 ```bash
+npm run dev
+# 或
 npm start
 ```
 
-### 3. 应用打包
-打包生成 Windows x64 免安装版（Portable 独立单文件版，已自动配置好 256x256 高清 `.exe` 图标）：
+### 3. 打包
+
 ```bash
 npm run build
 ```
-打包成功后，可在项目根目录下的 `dist/` 文件夹中找到生成的 `MiaoMemo 1.0.1.exe` 执行文件。
+
+打包成功后，NSIS 安装包位于：
+
+```text
+src-tauri/target/release/bundle/nsis/MiaoMemo_1.0.1_x64-setup.exe
+```
+
+
+### 4. 测试
+
+```bash
+npm test              # JS 单元测试 + Rust 单元测试
+npm run test:js       # 仅 JS（noteUtils）
+npm run test:rust     # 仅 Rust（store/persistence）
+```
+
+手工 GUI 回归清单见 [`tests/MANUAL.md`](tests/MANUAL.md)。
+
+### 5. 重新生成图标
+
+修改 `icon.ico` 后执行：
+
+```bash
+npm run icons
+# 等价于 python generate_icons.py
+```
 
 ---
 
+## 💾 数据位置与迁移
+
+Windows 上数据默认位于：
+
+```text
+%APPDATA%\com.miaomemo.desktop\notes.json
+```
+
+首次启动时，如果目标文件不存在，会自动尝试导入旧 Electron 版本的数据：
+
+```text
+%APPDATA%\MiaoMemo\notes.json
+%APPDATA%\miao-memo\notes.json
+```
+
+测试或便携使用时可以用环境变量覆盖数据目录：
+
+```powershell
+$env:MIAOMEMO_DATA_DIR = "$env:TEMP\miaomemo-test"
+npm run dev
+```
+
+也支持命令行参数：
+
+```text
+miao-memo.exe --user-data-dir="D:\miaomemo-data"
+```
+
 ---
 
-## ⌨️ Shortcuts / 快捷操作说明
+## ⌨️ 快捷操作
 
-*   **移动窗口**：按住顶部居中的胶囊拖拽条即可随意拖动窗口位置。
-*   **右键菜单**：在便签任何区域单击右键可弹出菜单，支持**新建便签**和**更换主题**。
-*   **关闭便签**：点击顶部右侧的关闭（`×`）按钮弹出菜单，可选择「关闭当前便签窗口」（保留数据，通过托盘恢复）或「退出 MiaoMemo」（完全退出）。空白便签关闭时会自动清理，不留残留。
-*   **删除单页**：点击底部垃圾桶图标，确认后仅删除当前页。
+*   **移动窗口**：按住顶部拖拽条（`data-tauri-drag-region` 区域）拖动。
+*   **右键菜单**：便签内右键，可**新建便签**或**更换主题**。
+*   **关闭便签**：右上角 × 弹出菜单，可关闭当前窗口（保留数据）或退出应用；空白便签关闭时自动清理。
+*   **删除单页**：底部垃圾桶图标，确认后仅删除当前页。
+*   **翻页/跳页**：底部左右箭头翻页；点击页码弹出页面列表。
 
 ---
 
 ## License
 
 MIT © [MiaoMemo](https://github.com/miaomemo/miaomemo)
-

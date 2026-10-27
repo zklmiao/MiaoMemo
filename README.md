@@ -8,15 +8,9 @@
 
 *轻、快、安静 —— 写完即走，无需保存。*
 
-[![Version](https://img.shields.io/badge/version-1.0.1-8B5CF6?labelColor=2E1065)](https://github.com/miaomemo/miaomemo/releases/latest)
-[![Tauri 2](https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=black&labelColor=1C1917)](https://v2.tauri.app/)
-[![Rust](https://img.shields.io/badge/Rust-stable-DEA584?logo=rust&logoColor=black&labelColor=1C1917)](src-tauri/)
-[![Windows 10+](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white&labelColor=1C1917)](https://www.microsoft.com/windows)
-[![License](https://img.shields.io/badge/license-MIT-10B981?labelColor=064E3B)](LICENSE)
-
-<br/>
-
 <img src="docs/assets/banner.svg" width="840" alt="MiaoMemo 横幅"/>
+
+[![Version](https://img.shields.io/badge/version-1.0.1-8B5CF6?labelColor=2E1065)](https://github.com/miaomemo/miaomemo/releases/latest) [![Tauri 2](https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=black&labelColor=1C1917)](https://v2.tauri.app/) [![Rust](https://img.shields.io/badge/Rust-stable-DEA584?logo=rust&logoColor=black&labelColor=1C1917)](src-tauri/) [![Windows 10+](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white&labelColor=1C1917)](https://www.microsoft.com/windows) [![License](https://img.shields.io/badge/license-MIT-10B981?labelColor=064E3B)](LICENSE)
 
 </div>
 

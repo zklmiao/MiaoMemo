@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-10-27
+goal: Make note persistence safe under Alt+F4, tray quit, I/O errors, and
+  release-mode failures.

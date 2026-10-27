@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-10-27
+goal: Create a non-blocking optimization backlog that improves performance and
+  long-term maintainability without changing note behavior.

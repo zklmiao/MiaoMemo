@@ -33,7 +33,7 @@
 
 ## 📸 一览
 
-<img src="docs/assets/hero.png" width="720" alt="MiaoMemo 便签截图"/>
+<img src="docs/assets/hero.png" width="760" alt="MiaoMemo 便签截图"/>
 
 <img src="docs/assets/themes.png" width="760" alt="六套主题"/>
 

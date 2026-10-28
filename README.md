@@ -10,7 +10,7 @@
 
 <img src="docs/assets/banner.svg" width="840" alt="MiaoMemo 横幅"/>
 
-[![Version](https://img.shields.io/badge/version-1.0.1-8B5CF6?labelColor=2E1065)](https://github.com/miaomemo/miaomemo/releases/latest) [![Tauri 2](https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=black&labelColor=1C1917)](https://v2.tauri.app/) [![Rust](https://img.shields.io/badge/Rust-stable-DEA584?logo=rust&logoColor=black&labelColor=1C1917)](src-tauri/) [![Windows 10+](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white&labelColor=1C1917)](https://www.microsoft.com/windows) [![License](https://img.shields.io/badge/license-MIT-10B981?labelColor=064E3B)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.1-8B5CF6?labelColor=2E1065)](https://github.com/zklmiao/MiaoMemo/releases/latest) [![Tauri 2](https://img.shields.io/badge/Tauri-2-FFC131?logo=tauri&logoColor=black&labelColor=1C1917)](https://v2.tauri.app/) [![Rust](https://img.shields.io/badge/Rust-stable-DEA584?logo=rust&logoColor=black&labelColor=1C1917)](src-tauri/) [![Windows 10+](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white&labelColor=1C1917)](https://www.microsoft.com/windows) [![License](https://img.shields.io/badge/license-MIT-10B981?labelColor=064E3B)](LICENSE)
 
 </div>
 
@@ -43,7 +43,7 @@
 
 ## 🚀 安装
 
-1. 前往 [**Releases**](https://github.com/miaomemo/miaomemo/releases/latest) 下载 `MiaoMemo_x.x.x_x64-setup.exe`。
+1. 前往 [**Releases**](https://github.com/zklmiao/MiaoMemo/releases/latest) 下载 `MiaoMemo_x.x.x_x64-setup.exe`。
 2. 双击安装（当前用户级，无需管理员）。Windows 10/11 一般已内置 WebView2；如缺失，安装器会自动联网安装运行时。
 3. 启动后桌面出现欢迎便签，右下角托盘图标可随时新建。
 
@@ -60,8 +60,8 @@
 | 构建工具 | Visual Studio Build Tools（“使用 C++ 的桌面开发”工作负载） |
 
 ```bash
-git clone https://github.com/miaomemo/miaomemo.git
-cd miaomemo
+git clone https://github.com/zklmiao/MiaoMemo.git
+cd MiaoMemo
 npm install
 
 npm run dev        # 开发模式
